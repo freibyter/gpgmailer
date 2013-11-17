@@ -79,20 +79,27 @@ while IFS='|' read ID X FILE; do
 
 	# input seems valid here
 
+	# a/bc/abcdef0123
+	SUBDIR="${ID:0:1}/${ID:1:2}"
+
 	# check for already seen this ID (shecksum)
 	grep --quiet --fixed-strings "${ID}" "${SEEN}" && 
-		{ mv -v "${FILE}" "${ERRORDIR}/${ID}_seen"; continue ; }
+		{ mkdir -pv "${ERRORDIR}/${SUBDIR}" && 
+		  mv -v "${FILE}" "${ERRORDIR}/${SUBDIR}/${ID}_seen"; continue ; }
 
 	# not seen yet, try to decrypt and feed to procmail
 	TMPFILE="${TMPDIR}/${ID}_tmp"
 	gpg --passphrase-file "${PASSFILE}" --batch --output "${TMPFILE}" --decrypt "${FILE}" ||
-		{ mv -v "${FILE}" "${ERRORDIR}/${ID}_gpg_failed"; continue; }
+		{ mkdir -pv "${ERRORDIR}/${SUBDIR}" && 
+		  mv -v "${FILE}" "${ERRORDIR}/${SUBDIR}/${ID}_gpg_failed"; continue; }
 
 	procmail < "${TMPFILE}" ||
-		{ mv -v "${FILE}" "${ERRORDIR}/${ID}_procmail_failed" ; continue ; }
+		{ mkdir -pv "${ERRORDIR}/${SUBDIR}" &&
+		  mv -v "${FILE}" "${ERRORDIR}/${SUBDIR}/${ID}_procmail_failed" ; continue ; }
 
 	echo "$(date)|${ID}|${FILE}" >> "${SEEN}"
-	mv -v "${FILE}" "${DONEDIR}/${ID}_done" && 
+	mkdir -pv "${DONEDIR}/${SUBDIR}"
+	mv -v "${FILE}" "${DONEDIR}/${SUBDIR}/${ID}_done" && 
 	rm "${TMPFILE}"
 
 done < <(find "${INCOMING}" -name "*.asc" -exec sha256sum  {} + | tr ' ' '|' | tee -a "${LOG_INC}")
