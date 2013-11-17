@@ -12,7 +12,7 @@
 #
 # CHANGE THIS!!!
 # -----------------------------------------------------------------------
-RCPT="filetransfers@sigsys.de"
+RCPT="changethis@example.com"
 
 # -----------------------------------------------------------------------
 # INIT Logging: we don't know HOME yet, log into tmpfile
