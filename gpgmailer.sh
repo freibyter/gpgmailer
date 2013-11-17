@@ -1,5 +1,7 @@
 #! /bin/sh -f 
 #
+# tested with FreeBSD+sendmail+gpg
+#
 # local MTA: 
 # * encrypt incoming mails using GnuPG
 # * to be used as ~/.forward: e.g. 
