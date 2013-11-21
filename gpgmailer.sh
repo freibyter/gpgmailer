@@ -28,6 +28,8 @@ exec 2>>"${LOG}"
 # -----------------------------------------------------------------------
 OIFS="${IFS}"            
 IFS=":"
+# ensure pathname expansion disabled here (noglob) as the second field 
+# from passwd will be `*' in most cases!  /bin/sh -f
 set -- $(getent passwd $(whoami))
 IFS="${OIFS}"
 USER="${1}"
@@ -47,17 +49,18 @@ NOW="$(date "+%Y%m%d%H%M%S")"
 HOST="$(hostname -f)"
 
 
-mkdir -pv "${BASEDIR}" || exit 128
-mkdir -pv "${INCOMING}" || exit 128
-mkdir -pv "${LOGDIR}" || exit 128
+mkdir -pv "${BASEDIR}" "${LOGDIR}" "${INCOMING}" || 
+	exit 128
 chmod 700 "${BASEDIR}" "${LOGDIR}" "${INCOMING}"
-touch "${LOG}" || exit 128
+touch "${LOG}" || 
+	exit 128
 chmod 600 "${LOG}"
 
 # continue loggin into ${LOG}
 exec >>"${LOG}"
 exec 2>>"${LOG}"
-cat "${OLDLOG}" >> "${LOG}" && rm "${OLDLOG}"
+cat "${OLDLOG}" >> "${LOG}" && 
+	rm "${OLDLOG}"
 
 ENC_TMP="$(mktemp "${INCOMING}/${HOST}_${USER}_${NOW}_XXXXXX")"
 ENC_FILE="${ENC_TMP}.asc"
