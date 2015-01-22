@@ -73,6 +73,12 @@ while IFS='|' read ID X FILE; do
 	test -z "${X}" || 
 		{ echo "Skip nonempty X=${X}, ID=${ID}, FILE=${FILE}" >&2; continue; }
 
+	# try to get a lockfile or skip now
+	LOCKFILE="${FILE}.lock"
+	lockfile -2 -r 2 "${LOCKFILE}"
+	test $? -ge 0 && 
+		{ echo "Skipping already locked ID=${ID}, FILE=${FILE}" >&2; continue; }
+
 	# FILE must be at least exist and readable
 	test -r "${FILE}" || 
 		{ echo "Skip non existing or unreadble FILE=${FILE} ID=${ID}" >&2; continue; }
@@ -100,7 +106,7 @@ while IFS='|' read ID X FILE; do
 	echo "$(date)|${ID}|${FILE}" >> "${SEEN}"
 	mkdir -pv "${DONEDIR}/${SUBDIR}"
 	mv -v "${FILE}" "${DONEDIR}/${SUBDIR}/${ID}_done" && 
-	rm "${TMPFILE}"
+		rm -f "${TMPFILE}" "${LOCKFILE}"
 
 done < <(find "${INCOMING}" -name "*.asc" -exec sha256sum  {} + | tr ' ' '|' | tee -a "${LOG_INC}")
 
